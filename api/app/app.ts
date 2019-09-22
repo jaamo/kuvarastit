@@ -1,4 +1,5 @@
 import express = require("express");
+const bodyParser = require("body-parser");
 const Db = require("./db");
 const defaultHeaders: any = require("./middlewares/defaultHeaders");
 const errorHandler: any = require("./middlewares/errorHandler");
@@ -11,6 +12,9 @@ app.locals.db = new Db();
 
 // Apply default JSON headers.
 app.use(defaultHeaders);
+
+// Parse forms.
+app.use(bodyParser.urlencoded({ extended: true }));
 
 // Routes.
 app.use("/", require("./routes/index"));

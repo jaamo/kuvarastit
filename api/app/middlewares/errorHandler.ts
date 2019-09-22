@@ -8,6 +8,6 @@ module.exports = function(
 ) {
   console.error(err.stack);
   res
-    .status(err.status)
+    .status(err.status || 500)
     .send(JSON.stringify({ code: err.customCode, message: err.message }));
 };
