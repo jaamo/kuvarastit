@@ -10,15 +10,14 @@ const saltRounds = 10;
 /**
  * Get list of all users.
  */
-router.get("/", function(req: express.Request, res: express.Response) {
-  // Find all users.
-  req.app.locals.db.user
-    .findAll({
-      attributes: ["name"]
-    })
-    .then((users: Array<any>) => {
-      res.end(JSON.stringify(users));
-    });
+router.get("/", async (req: express.Request, res: express.Response) => {
+  // Get all users.
+  const users: Array<any> = await req.app.locals.db.user.findAll({
+    attributes: ["name"]
+  });
+
+  // VAMOS!
+  res.end(JSON.stringify(users));
 });
 
 /**
