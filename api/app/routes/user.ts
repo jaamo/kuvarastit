@@ -1,11 +1,12 @@
 import express = require("express");
-const Sequelize = require("sequelize");
-const bcrypt = require("bcrypt");
-const router: express.Router = require("express").Router();
-const validateInput = require("../helpers/validateInput");
-const uuidv1 = require("uuid/v1");
+import bcrypt from "bcrypt";
+import uuidv1 from "uuid/v1";
+import Sequelize from "sequelize";
+import validateInput from "../helpers/validateInput";
 
 const saltRounds = 10;
+
+const router = express.Router();
 
 /**
  * Get list of all users.
@@ -109,7 +110,7 @@ router.post(
     }
 
     // Check if passwords match.
-    const match: boolean = await bcrypt
+    const match: boolean | void = await bcrypt
       .compare(req.body.password, user.get("password"))
       .catch((err: Error) => {});
 

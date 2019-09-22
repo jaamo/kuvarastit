@@ -1,4 +1,4 @@
-module.exports = function(
+function validateInput(
   requiredFields: Array<string>,
   fields: { [key: string]: string }
 ) {
@@ -16,4 +16,6 @@ module.exports = function(
   } else {
     return false;
   }
-};
+}
+
+export default validateInput;
