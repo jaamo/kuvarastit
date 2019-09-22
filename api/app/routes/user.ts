@@ -79,51 +79,66 @@ router.post("/", function(
  */
 router.post(
   "/login",
-  (req: express.Request, res: express.Response, next: Function) => {
+  async (req: express.Request, res: express.Response, next: Function) => {
     // Validate parameters.
     const error: any = validateInput(["email", "password"], req.body);
 
     // Ooops! Params missing.
     if (error) {
-      throw error;
+      res
+        .status(500)
+        .send(
+          JSON.stringify({ code: "LOGIN_FAILED", message: "Login failed" })
+        );
     }
 
-    // Error.
-    const err: any = new Error("Login failed.");
-    err.status = 401;
-    err.customCode = "LOGIN_FAILED";
+    // Get user by email.
+    const user: any = await req.app.locals.db.user
+      .findOne({
+        where: { email: req.body.email }
+      })
+      .catch((err: Error) => {});
 
-    // Load user with given email.
-    req.app.locals.db.user
-      .findOne({ where: { email: req.body.email } })
-      .then((user: any) => {
-        console.log("user löyty");
-        // User found. Check password.
-        if (user) {
-          // Check matching password.
-          bcrypt
-            .compare(req.body.password, user.get("password"))
-            .then(function(result: boolean) {
-              console.log("hässi verratttu");
-              // Login successful.
-              if (result) {
-                console.log("juu");
-                const uuid: string = uuidv1();
-                res.end(JSON.stringify({ token: uuid }));
-              }
-              // Login failed.
-              else {
-                console.log("ei");
-                res.status(401).send(
-                  JSON.stringify({
-                    code: "LOGIN_FAILED",
-                    message: "Login failed"
-                  })
-                );
-              }
-            });
-        }
-      });
+    // No user, bail out.
+    if (!user) {
+      res
+        .status(500)
+        .send(
+          JSON.stringify({ code: "LOGIN_FAILED", message: "Login failed" })
+        );
+    }
+
+    // Check if passwords match.
+    const match: boolean = await bcrypt
+      .compare(req.body.password, user.get("password"))
+      .catch((err: Error) => {});
+
+    // Success or not success.
+    if (match) {
+      // Generate token.
+      const token: string = uuidv1();
+
+      // Update token to user.
+      await req.app.locals.db.user
+        .update(
+          { token: token },
+          {
+            where: {
+              id: user.get("id")
+            }
+          }
+        )
+        .catch((err: Error) => {});
+
+      // Output token.
+      res.end(JSON.stringify({ token: token }));
+    } else {
+      res
+        .status(500)
+        .send(
+          JSON.stringify({ code: "LOGIN_FAILED", message: "Login failed" })
+        );
+    }
   }
 );
 
